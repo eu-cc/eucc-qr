@@ -1,2 +1,2 @@
 # QR
-Official QR code landing page
+Official QR code landing page | Emprendedores Universitarios
