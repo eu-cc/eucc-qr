@@ -1,0 +1,69 @@
+extends components/base.pug
+
+block content 
+    .container
+        h1.display-4.fw-bold.mb-3
+            | ¡Hola,
+            br
+            span.display-1.fw-bold #{member['Nombre(s)']}!
+        table.table.table-borderless.table-hover.fs-5
+            tr
+                td Número de socio
+                td.text-end
+                    span.badge.text-bg-secondary #{member['Número de socio'] ? member['Número de socio'] : "(No disponible)"}
+            tr
+                td Vigencia
+                td.text-end
+                    span.badge.text-bg-secondary #{member['Fecha de vencimiento'] ? member['Fecha de vencimiento'] : "(No disponible)"}
+
+        .container.my-4.border-top.border-bottom.py-4
+            each event in events 
+                .row.p-4.align-items-center.rounded-3.border.shadow.mb-3
+                    .col-lg-8.p-3.p-lg-5.pt-lg-3
+                        .d-flex.align-items-center
+                            h1.display-5.fw-bold.mb-1.me-2.d-inline #{event.fields['Nombre del evento']}
+                            span.spinner-grow.spinner-grow-sm(aria-hidden="true")
+                        p.lead Evento en curso
+                        .d-grid.gap-2.d-md-flex.justify-content-md-start.mb-4.mb-lg-3
+                            btn.btn.btn-primary.btn-lg.px-4.me-md-2.fw-bold.call-to-action.d-flex.justify-content-center.align-items-center.w-100(data-bs-target="#estoyAquiModal", data-bs-toggle="modal")
+                                | Estoy aquí
+                                i.bi.bi-clipboard-check-fill.ms-2
+                            a.btn.btn-secondary.btn-lg.px-4.me-md-2.fw-bold.d-flex.flex-wrap.justify-content-center.align-items-center.w-100(href="#" target="_blank" style="color: white !important")
+                                | Evaluar evento
+                                i.bi.bi-bar-chart-fill.ms-2
+                    .col-lg-4.d-flex.justify-content-end.p-0
+                        a(href=src=event.fields['Flyer'][0].url, target='_blank').w-100.text-end.flyer
+                            img(src=event.fields['Flyer'][0].url alt="Fachada de la cámara de comercio de guadalajara." width="100%" object-fit="contain" style="border-radius: 8px")
+
+        .container.my-4.pb-4
+            .row.p-4.pe-lg-0.pt-lg-5.align-items-center.rounded-3.border.shadow-lg
+                h1 Eventos
+
+        
+    //- "Estoy aquí" - modal
+    .modal.fade(id="estoyAquiModal", tabindex="-1", aria-labelledby="estoyAquiModalLabel", aria-hidden="true")
+        .modal-dialog
+            .modal-content
+                .modal-header
+                    h1.modal-title.fs-5(id="estoyAquiModalLabel") Toma de asistencia
+                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                .modal-body
+                    | Por favor, ingresa la clave de la sesión:
+                    .input-group.mt-2
+                        span.input-group-text.py-0(id="basic-addon1")
+                            i.bi.bi-key-fill.fs-2.m-0
+                        input#claveSesionInput.form-control(type="number", placeholder="Código de 4 dígitos", aria-label="Código de 6 dígitos", aria-describedby="basic-addon1")
+                .modal-footer
+                    button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
+                    button.btn.btn-primary(type="button") Confirmar
+
+
+block scripts 
+    script.
+        const estoyAquiModal = document.getElementById("estoyAquiModal");
+        const claveSesionInput = document.getElementById("claveSesionInput");
+
+        estoyAquiModal.addEventListener("shown.bs.modal", () => {
+            claveSesionInput.focus();
+        });
+
