@@ -22,10 +22,11 @@ block content
                     .col-lg-8.p-3.p-lg-5.pt-lg-3
                         .d-flex.align-items-center
                             h1.display-5.fw-bold.mb-1.me-2.d-inline #{event.fields['Nombre del evento']}
-                            span.spinner-grow.spinner-grow-sm(aria-hidden="true")
-                        p.lead Evento en curso
+                        p.lead
+                            i.bi.bi-circle-fill.text-success.me-2(style="font-size: 0.7rem; top: -2px; position: relative;")
+                            | Evento en curso
                         .d-grid.gap-2.d-md-flex.justify-content-md-start.mb-4.mb-lg-3
-                            btn.btn.btn-primary.btn-lg.px-4.me-md-2.fw-bold.call-to-action.d-flex.justify-content-center.align-items-center.w-100(data-bs-target="#estoyAquiModal", data-bs-toggle="modal")
+                            btn.btn.btn-primary.btn-lg.px-4.me-md-2.fw-bold.call-to-action.d-flex.justify-content-center.align-items-center.w-100.estoy-aqui(data-bs-target="#estoyAquiModal", data-bs-toggle="modal" data-art-eventid=event.id)
                                 | Estoy aquí
                                 i.bi.bi-clipboard-check-fill.ms-2
                             a.btn.btn-secondary.btn-lg.px-4.me-md-2.fw-bold.d-flex.flex-wrap.justify-content-center.align-items-center.w-100(href="#" target="_blank" style="color: white !important")
@@ -44,21 +45,24 @@ block content
     .modal.fade(id="estoyAquiModal", tabindex="-1", aria-labelledby="estoyAquiModalLabel", aria-hidden="true")
         .modal-dialog
             .modal-content
-                .modal-header
-                    h1.modal-title.fs-5(id="estoyAquiModalLabel") Toma de asistencia
-                    button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-                .modal-body
-                    | Por favor, ingresa la clave de la sesión:
-                    .input-group.mt-2
-                        span.input-group-text.py-0(id="basic-addon1")
-                            i.bi.bi-key-fill.fs-2.m-0
-                        input#claveSesionInput.form-control(type="number", placeholder="Código de 4 dígitos", aria-label="Código de 6 dígitos", aria-describedby="basic-addon1")
-                .modal-footer
-                    button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
-                    button.btn.btn-primary(type="button") Confirmar
+                form(id="attendanceForm")
+                    .modal-header
+                        h1.modal-title.fs-5(id="estoyAquiModalLabel") Toma de asistencia
+                        button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
+                    .modal-body
+                        | Por favor, ingresa la clave de la sesión:
+                        .input-group.mt-2
+                            span.input-group-text.py-0(id="basic-addon1")
+                                i.bi.bi-key-fill.fs-2.m-0
+                            input#claveSesionInput.form-control.required(type="number", placeholder="Código de 4 dígitos", aria-label="Código de 6 dígitos", aria-describedby="basic-addon1")
+                            #claveSesionInputInvalidFeedback.invalid-feedback.d-none Código incorrecto
+                    .modal-footer
+                        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
+                        button#attendanceSubmitBtn.btn.btn-primary(type="submit") Confirmar
 
 
 block scripts 
+    // Focus modal input
     script.
         const estoyAquiModal = document.getElementById("estoyAquiModal");
         const claveSesionInput = document.getElementById("claveSesionInput");
@@ -66,4 +70,78 @@ block scripts
         estoyAquiModal.addEventListener("shown.bs.modal", () => {
             claveSesionInput.focus();
         });
+
+    // Change selected event ID
+    script.
+        let selectedEventId = null 
+        const openAttendanceBtns = document.getElementsByClassName('estoy-aqui');
+
+        for (btn of openAttendanceBtns) {
+            btn.addEventListener('click', e => {
+                selectedEventId = e.target.dataset.artEventid
+            })
+        }
+
+    // Form validation styling
+    script.
+        function showAttendanceFormErrors() {
+            const claveSesionInput = document.getElementById('claveSesionInput')
+            claveSesionInput.classList.add('is-invalid')
+            claveSesionInput.value = ''
+
+            const claveSesionInputInvalidFeedback = document.getElementById('claveSesionInputInvalidFeedback')
+            claveSesionInputInvalidFeedback.classList.replace('d-none', 'd-block')
+        }
+
+    // Modal submit btn spinner
+    script.
+        function isAttendanceFormSubmitting(loading) {
+            const attendanceSubmitBtn = document.getElementById('attendanceSubmitBtn')
+            attendanceSubmitBtn.classList.toggle('disabled', loading)
+
+            if (loading) {
+                attendanceSubmitBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span role="status">Verificando...</span>
+                `
+            } else {
+                attendanceSubmitBtn.innerHTML = 'Confirmar'
+            }
+        }
+
+    // Submit form
+    script.
+        document.getElementById('attendanceForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const userKey = document.getElementById('claveSesionInput').value
+            const member_id = "#{member_id}"
+
+            isAttendanceFormSubmitting(true)
+            
+            try {
+                const res = await fetch('/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({ 
+                        userKey: userKey,
+                        eventId: selectedEventId,
+                        memberId: member_id
+                    })
+                })
+
+                if (res.status === 200) {
+                    window.location.reload(true)
+                } else {
+                    showAttendanceFormErrors()
+                    isAttendanceFormSubmitting(false)
+                }
+
+            } catch (error) {
+                console.error('Error:', error)
+            }
+        })
+    
+
 
