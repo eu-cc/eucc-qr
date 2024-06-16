@@ -3,6 +3,7 @@ const path = require('path')
 const cors = require('cors')
 const Airtable = require('airtable')
 const bodyParser = require('body-parser')
+const AirtableError = require('airtable/lib/airtable_error')
 require('dotenv').config()
 
 const app = express()
@@ -25,10 +26,10 @@ app.get('/', (req, res) => {
   return res.status(404).send('Not found')
 })
 
-app.get('/m/:id_miembro', (req, res) => {
+app.get('/m/:memberId', (req, res) => {
+  const memberId = req.params.memberId
   let member = null
-  let member_id = null
-  let events_list = []
+  let eventsList = []
 
   console.log(req.url, 'GET', req.body)
 
@@ -38,35 +39,41 @@ app.get('/m/:id_miembro', (req, res) => {
       maxRecords: 3,
       view: 'Todos los eventos',
       filterByFormula: '{Mostrar en QR-LandingPage}',
-      fields: ['Nombre del evento', 'Descripción', 'Flyer'],
+      fields: [
+        'Nombre del evento',
+        'Descripción',
+        'Flyer',
+        'Toma de asistencia',
+        'Requerir código',
+      ],
     })
     .eachPage(
       function page(records, fetchNextPage) {
         records.forEach(function (record) {
-          events_list.push(record)
+          const attendanceList = record.fields['Toma de asistencia'] || []
+          record['takeAttendance'] = !attendanceList.includes(memberId)
+          eventsList.push(record)
         })
-
         fetchNextPage()
       },
       function done(err) {
         if (err) {
-          console.error(err)
+          res.status(500).send(err)
           return
         }
 
         // Fetch member data
-        eucc_db('Miembros').find(req.params.id_miembro, function (err, record) {
+        eucc_db('Miembros').find(memberId, function (err, record) {
           if (err) {
-            console.error(err)
-            res.status(404).send('Not found.')
+            res.status(500).send(err)
+            return
           }
           member = record.fields
-          member_id = record.id
 
           res.render('miembro', {
             member: member,
-            member_id: member_id,
-            events: events_list,
+            member_id: memberId,
+            events: eventsList,
           })
         })
       },
@@ -82,27 +89,35 @@ app.post('/attendance', (req, res) => {
   eucc_db('Eventos').find(eventId, function (err, record) {
     if (err) {
       console.error(err)
-      res.status(500).send('Unable to retrieve event.')
+      res.status(500).send(err)
     }
 
-    const eventSecret = record.fields['Código de sesión']
+    let eventSecret = null
+    if (record.fields['Requerir código']) {
+      eventSecret = record.fields['Código de sesión']
+    } else {
+      eventSecret = userKey
+    }
 
     if (eventSecret === userKey) {
-      eucc_db('Asistencia').create(
+      const attendanceList = record.fields['Toma de asistencia'] || []
+
+      eucc_db('Eventos').update(
         [
           {
+            id: eventId,
             fields: {
-              Miembro: [memberId],
-              Evento: [eventId],
+              'Toma de asistencia': [...attendanceList, memberId],
             },
           },
         ],
         function (err, records) {
           if (err) {
             console.error(err)
-            res.status(500).send('Unable to register attendance.')
+            res.status(500).send(err)
           } else {
             res.status(200).send('Success.')
+            records.forEach((record) => console.log(record.id))
           }
         },
       )

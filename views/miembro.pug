@@ -16,29 +16,44 @@ block content
                 td.text-end
                     span.badge.text-bg-secondary #{member['Fecha de vencimiento'] ? member['Fecha de vencimiento'] : "(No disponible)"}
 
-        .container.my-4.border-top.border-bottom.py-4
-            each event in events 
-                .row.p-4.align-items-center.rounded-3.border.shadow.mb-3
-                    .col-lg-8.p-3.p-lg-5.pt-lg-3
-                        .d-flex.align-items-center
-                            h1.display-5.fw-bold.mb-1.me-2.d-inline #{event.fields['Nombre del evento']}
-                        p.lead
-                            i.bi.bi-circle-fill.text-success.me-2(style="font-size: 0.7rem; top: -2px; position: relative;")
-                            | Evento en curso
-                        .d-grid.gap-2.d-md-flex.justify-content-md-start.mb-4.mb-lg-3
-                            btn.btn.btn-primary.btn-lg.px-4.me-md-2.fw-bold.call-to-action.d-flex.justify-content-center.align-items-center.w-100.estoy-aqui(data-bs-target="#estoyAquiModal", data-bs-toggle="modal" data-art-eventid=event.id)
-                                | Estoy aquí
-                                i.bi.bi-clipboard-check-fill.ms-2
-                            a.btn.btn-secondary.btn-lg.px-4.me-md-2.fw-bold.d-flex.flex-wrap.justify-content-center.align-items-center.w-100(href="#" target="_blank" style="color: white !important")
-                                | Evaluar evento
-                                i.bi.bi-bar-chart-fill.ms-2
-                    .col-lg-4.d-flex.justify-content-end.p-0
-                        a(href=src=event.fields['Flyer'][0].url, target='_blank').w-100.text-end.flyer
-                            img(src=event.fields['Flyer'][0].url alt="Fachada de la cámara de comercio de guadalajara." width="100%" object-fit="contain" style="border-radius: 8px")
+        if events.length > 0
+            .container.my-4.border-top.py-4.m-0
+                each event in events 
+                    .row.p-4.align-items-center.rounded-3.border.shadow.mb-3
+                        .col-lg-8.p-3.p-lg-5.pt-lg-3
+                            .d-flex.align-items-center
+                                h1.display-5.fw-bold.mb-1.me-2.d-inline #{event.fields['Nombre del evento']}
+                            p.lead
+                                i.bi.bi-circle-fill.text-success.me-2(style="font-size: 0.7rem; top: -2px; position: relative;")
+                                | Evento en curso
+                            .d-grid.gap-2.d-md-flex.justify-content-md-start.mb-4.mb-lg-3
+                                btn.btn.btn-primary.btn-lg.px-4.me-md-2.fw-bold.call-to-action.d-flex.justify-content-center.align-items-center.w-100.estoy-aqui(data-bs-target="#estoyAquiModal" data-bs-toggle="modal" data-art-require-code=event.fields['Requerir código'] ? 1 : 0 data-art-eventid=event.id class=event.takeAttendance ? '' : 'd-none')
+                                    | Estoy aquí
+                                    i.bi.bi-clipboard-check-fill.ms-2
+                                // btn.btn.btn-lg.btn-success.disabled.fw-bold.w-100(class=event.takeAttendance ? 'd-none' : '')
+                                    | Asististe
+                                    i.bi.bi-clipboard-check-fill.ms-2
+                                a.btn.btn-secondary.btn-lg.px-4.me-md-2.fw-bold.d-flex.flex-wrap.justify-content-center.align-items-center.w-100(href="https://docs.google.com/forms/d/e/1FAIpQLScxDdX9t0qfJ2p5RehXVo7OgZgeXiDOdXnVE2bTNVIe0pmN1w/viewform?usp=sf_link" target="_blank" style="color: white !important" class=event.takeAttendance ? 'd-none' : '')
+                                    | Evaluar evento
+                                    i.bi.bi-bar-chart-fill.ms-2
+                        .col-lg-4.d-flex.justify-content-end.p-0
+                            a(href=src=event.fields['Flyer'][0].url, target='_blank').w-100.text-end.flyer
+                                img(src=event.fields['Flyer'][0].url alt="Fachada de la cámara de comercio de guadalajara." width="100%" object-fit="contain" style="border-radius: 8px")
 
-        .container.my-4.pb-4
-            .row.p-4.pe-lg-0.pt-lg-5.align-items-center.rounded-3.border.shadow-lg
-                h1 Eventos
+        .container.my-4.py-4.border-top(style=events.length > 0 ? "margin-top: -2rem !important" : "")
+            .row
+                .col.col-lg-6.p-4.align-items-center.rounded-3.border.shadow-lg
+                    h1.p-0.mb-4 
+                        i.bi.bi-calendar3.me-2
+                        | Calendario oficial 
+                    
+                    .d-grid.gap-2.d-md-flex.justify-content-md-start
+                        a.btn.btn-primary.btn-lg.call-to-action.w-100.d-flex.align-items-center.justify-content-center(href="https://airtable.com/appwPwxy0ng15Ygab/shrUJ4QWyEZIQMZHL" target="_blank")
+                            | Abrir en el navegador 
+                            i.bi.bi-box-arrow-up-right.ms-2
+                        btn#calendarCopyToClipboardBtn.btn.btn-secondary.btn-lg.w-100.align-items-center.justify-content-center
+                            | Enlace de suscripción
+                            i.bi.bi-copy.ms-2
 
         
     //- "Estoy aquí" - modal
@@ -49,13 +64,15 @@ block content
                     .modal-header
                         h1.modal-title.fs-5(id="estoyAquiModalLabel") Toma de asistencia
                         button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Close")
-                    .modal-body
+                    #codeInputBody.modal-body
                         | Por favor, ingresa la clave de la sesión:
                         .input-group.mt-2
                             span.input-group-text.py-0(id="basic-addon1")
                                 i.bi.bi-key-fill.fs-2.m-0
                             input#claveSesionInput.form-control.required(type="number", placeholder="Código de 4 dígitos", aria-label="Código de 6 dígitos", aria-describedby="basic-addon1")
                             #claveSesionInputInvalidFeedback.invalid-feedback.d-none Código incorrecto
+                    #noCodeInputBody.modal-body.d-none
+                        | Presiona "Confirmar" para registrar tu asistencia.
                     .modal-footer
                         button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
                         button#attendanceSubmitBtn.btn.btn-primary(type="submit") Confirmar
@@ -64,8 +81,8 @@ block content
 block scripts 
     // Focus modal input
     script.
-        const estoyAquiModal = document.getElementById("estoyAquiModal");
-        const claveSesionInput = document.getElementById("claveSesionInput");
+        const estoyAquiModal = document.getElementById("estoyAquiModal")
+        const claveSesionInput = document.getElementById("claveSesionInput")
 
         estoyAquiModal.addEventListener("shown.bs.modal", () => {
             claveSesionInput.focus();
@@ -74,11 +91,31 @@ block scripts
     // Change selected event ID
     script.
         let selectedEventId = null 
-        const openAttendanceBtns = document.getElementsByClassName('estoy-aqui');
+        let selectedEventRequiresCode = "1"
+        const openAttendanceBtns = document.getElementsByClassName('estoy-aqui')
+
+        function showModalCodeInput(show) {
+            const codeInputBody = document.getElementById("codeInputBody")
+            const noCodeInputBody = document.getElementById("noCodeInputBody")
+            const claveSesionInput = document.getElementById("claveSesionInput")
+
+            if (show) {
+                codeInputBody.classList.remove('d-none')
+                noCodeInputBody.classList.add('d-none')
+                claveSesionInput.value = ''
+            } else {
+                codeInputBody.classList.add('d-none')
+                noCodeInputBody.classList.remove('d-none')
+                claveSesionInput.value = 9999
+            }
+        }
 
         for (btn of openAttendanceBtns) {
             btn.addEventListener('click', e => {
                 selectedEventId = e.target.dataset.artEventid
+                selectedEventRequiresCode = e.target.dataset.artRequireCode === "1"
+
+                showModalCodeInput(selectedEventRequiresCode)
             })
         }
 
@@ -142,6 +179,38 @@ block scripts
                 console.error('Error:', error)
             }
         })
+
+    // Copy to clipboard (calendar url)
+    script.
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text)
+            } catch (error) {
+                console.error(error)
+            }
+        }
+
+        function restoreCopyBtn(btn, innerText) {
+            btn.classList.remove('disabled')
+            btn.innerHTML = `
+                ${innerText} <i class="bi bi-copy ms-2"></i>
+            `
+        }
+
+        const calendarCopyToClipboardBtn = document.getElementById('calendarCopyToClipboardBtn')
+        calendarCopyToClipboardBtn.addEventListener('click', async () => {
+            calendarCopyToClipboardBtn.classList.add('disabled')
+            await copyToClipboard('https://airtable.com/appwPwxy0ng15Ygab/shr5OFIoBzvviZu4F/iCal?timeZone=America%2FMexico_City&userLocale=es')
+            calendarCopyToClipboardBtn.innerHTML = `
+                <i class="bi bi-check-circle-fill me-2"></i> Copiado
+            `
+
+            setTimeout(() => {
+                restoreCopyBtn(calendarCopyToClipboardBtn, 'Enlace de suscripción')
+            }, 1000)
+        })
+
+
     
 
 
