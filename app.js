@@ -22,7 +22,7 @@ app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 app.get('/', (req, res) => {
-  return res.status(404).send('Not found')
+  res.render('index')
 })
 
 app.get('/m/:memberId', (req, res) => {
