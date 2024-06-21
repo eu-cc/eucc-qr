@@ -3,7 +3,6 @@ const path = require('path')
 const cors = require('cors')
 const Airtable = require('airtable')
 const bodyParser = require('body-parser')
-const AirtableError = require('airtable/lib/airtable_error')
 require('dotenv').config()
 
 const app = express()
@@ -15,7 +14,7 @@ app.set('views', path.join(__dirname, 'views'))
 
 // Airtable config
 Airtable.configure({ apiKey: process.env.AIRTABLE_API_KEY })
-const eucc_db = require('airtable').base('appwPwxy0ng15Ygab')
+const eucc_db = require('airtable').base(process.env.AIRTABLE_BASE)
 
 app.use(express.static(path.join(__dirname, 'static')))
 app.use(cors())
@@ -78,6 +77,27 @@ app.get('/m/:memberId', (req, res) => {
         })
       },
     )
+})
+
+app.get('/inscripcion/:memberId', (req, res) => {
+  const memberId = req.params.memberId
+  let member = null
+
+  console.log(req.url, 'GET', req.body)
+
+  eucc_db('Miembros').find(memberId, function (err, record) {
+    if (err) {
+      res.status(500).send(err)
+      return
+    }
+
+    member = record.fields
+
+    res.render('status_inscripcion', {
+      member: member,
+      memberId: memberId,
+    })
+  })
 })
 
 app.post('/attendance', (req, res) => {

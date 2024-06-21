@@ -1,0 +1,47 @@
+extends components/base.pug
+
+block content 
+  if member['Etapa de inscripción'] !== undefined
+    .container
+      h1.display-4.fw-bold.mb-3
+        | ¡Hola,
+        br
+        span.display-1.fw-bold #{member['Nombre(s)']}!
+      
+      .border-top.py-2
+      h2.mb-3 Este es el estado de tu inscripción a Emprendedores Universitarios
+      
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle-fill.me-2.text-warning()
+          | Revisando solicitud
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle.me-2
+          | Esperando pago
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle.me-2
+          | Inscribiendo a Cámara Connect
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle.me-2
+          | Antregando kit de bienvenida
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle.me-2
+          | Agregando a grupos de WhatsApp
+      .rounded-3.border.shadow.mb-3.p-3
+        span
+          i.bi.bi-circle.me-2
+          | Finalizado
+
+block scripts 
+  script.
+    if (
+      #{member['Etapa de inscripción'] === undefined}
+    ) {
+      window.onload = () => {
+        window.location.href = `/m/#{memberId}`
+      }
+    }
