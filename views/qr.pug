@@ -1,5 +1,11 @@
 extends components/base.pug
 
+block content 
+    .container(style="height: 50vh")
+      h1 QR
+      p.fst-italic.fs-4.mt-4 Cargando contenido del enlace QR...
+
+
 block scripts 
     script.
       window.location.href = '/'
