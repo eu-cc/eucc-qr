@@ -147,6 +147,14 @@ app.post('/attendance', (req, res) => {
   })
 })
 
+app.get('/afiliacion', (req, res) => {
+  res.render('afiliacion')
+})
+
+app.get('/qr', (req, res) => {
+  res.render('qr')
+})
+
 app.listen(port, () => {
   console.log(`eucc-qr listening at ${port}`)
 })
